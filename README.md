@@ -96,8 +96,8 @@ Create `.env` file in the `backend` directory:
 
 ```env
 PORT=5000
-MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/database
-JWT_SECRET=your_jwt_secret_key
+MONGO_URI=mongodb+srv://your_username:your_password@your_cluster.mongodb.net/your_database?appName=your_app_name
+JWT_SECRET=your_super_secret_jwt_key_here
 EMAIL_USER=your_email@gmail.com
 EMAIL_PASS=your_gmail_app_password
 CLOUDINARY_CLOUD_NAME=your_cloud_name

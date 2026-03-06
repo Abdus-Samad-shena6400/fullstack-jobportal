@@ -1,17 +1,24 @@
 # Cloudinary Configuration Guide
 
-The project now includes valid Cloudinary credentials you provided. Use the following details in your `.env` file to enable resume uploads:
+To enable resume uploads, you need to set up Cloudinary credentials in your `.env` file. Use the following template:
 
 ```
-CLOUDINARY_CLOUD_NAME=samad
-CLOUDINARY_API_KEY=191152148814654
-CLOUDINARY_API_SECRET=0ZoUkxSOjXBxicDr2uQbTSYhE_U
+CLOUDINARY_CLOUD_NAME=your_cloud_name_here
+CLOUDINARY_API_KEY=your_api_key_here
+CLOUDINARY_API_SECRET=your_api_secret_here
 ```
+
+## How to Get Cloudinary Credentials
+
+1. Go to [cloudinary.com](https://cloudinary.com)
+2. Sign up for a free account
+3. Go to Dashboard → Settings → API Keys
+4. Copy your Cloud Name, API Key, and API Secret
 
 ## ✅ What’s Already Done
-- The `.env` file in the `backend` folder now contains the above Cloudinary credentials.
-- The `applicationController.js` was restored and includes error handling to gracefully skip uploads if something goes wrong.
-- File uploads are optional; if the credentials ever fail, applications still submit.
+- The `.env` file in the `backend` folder has placeholders for Cloudinary credentials.
+- The `applicationController.js` includes error handling to gracefully skip uploads if credentials are invalid.
+- File uploads are optional; if credentials fail, applications still submit successfully.
 
 ## 📝 How to Verify
 1. Restart the backend server:
