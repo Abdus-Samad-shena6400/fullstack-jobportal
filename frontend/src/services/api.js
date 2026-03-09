@@ -1,6 +1,11 @@
 import axios from 'axios';
 
-const API_BASE_URL = '/api';
+// base URL is taken from an environment variable in order to
+// point the frontend at the Render backend once deployed.  Vite
+// exposes variables prefixed with `VITE_` to client code.
+// During local development we proxy `/api` to the server (see
+// `vite.config.js`), so the default remains `/api`.
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 // Create axios instance
 const api = axios.create({

@@ -13,7 +13,10 @@ connectDB();
 const app = express();
 
 // Middleware
-app.use(cors());
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || '*',
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -25,13 +28,17 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/jobs', require('./routes/jobRoutes'));
 app.use('/api/applications', require('./routes/applicationRoutes'));
 
-// Serve static files from the React app
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
-
-// Catch all handler: send back React's index.html file
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
-});
+// in a monorepo setup the backend sometimes serves the built frontend
+// for convenience but when deploying the backend alone (as on Render)
+// the frontend is hosted separately, so we only enable the static
+// handler in production and if the directory exists.
+if (process.env.NODE_ENV === 'production') {
+  const clientPath = path.join(__dirname, '../frontend/dist');
+  app.use(express.static(clientPath));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(clientPath, 'index.html'));
+  });
+}
 
 // Error handling middleware
 app.use((err, req, res, next) => {

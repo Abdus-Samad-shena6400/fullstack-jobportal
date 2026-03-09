@@ -92,7 +92,9 @@ job-portal/
 
 ## 🔧 Environment Variables
 
-Create `.env` file in the `backend` directory:
+A few variables are required for both backend and frontend:
+
+### Backend (`backend/.env`)
 
 ```env
 PORT=5000
@@ -103,7 +105,17 @@ EMAIL_PASS=your_gmail_app_password
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
+# used by CORS middleware to allow the frontend origin
+FRONTEND_URL=https://your-frontend.vercel.app
 ```
+
+### Frontend (`frontend/.env` or set in Vercel dashboard)
+
+```
+VITE_API_URL=https://your-backend.onrender.com
+```
+
+The React app reads `VITE_API_URL` at build time; a default of `/api` is used for local development with the Vite dev server proxy.
 
 ## 📡 API Endpoints
 
@@ -129,16 +141,20 @@ CLOUDINARY_API_SECRET=your_api_secret
 ## 🚀 Deployment
 
 ### Frontend (Vercel)
-1. Connect GitHub repository to Vercel
-2. Set build command: `npm run build`
-3. Set output directory: `dist`
-4. Update API base URL in `src/services/api.js`
+1. Connect the GitHub repository to Vercel and select the `frontend` folder.
+2. Framework preset: **Vite** (the defaults usually work).
+3. Build command: `npm run build` and output directory `dist`.
+4. Set the environment variable `VITE_API_URL` to your Render backend URL.
+5. (Optional) configure a custom domain once deployed.
 
-### Backend (Railway)
-1. Connect GitHub repository to Railway
-2. Set build command: `npm install`
-3. Set start command: `npm start`
-4. Add environment variables in Railway dashboard
+### Backend (Render)
+1. Connect the GitHub repository to Render and create a **Web Service**.
+2. Set the root to the `backend` directory, build command `npm install`, start command `npm start`.
+   - Render does **not** need the `build` script; that command is intended for local
+   development when you want to bundle the frontend inside the backend.
+3. Add environment variables listed above, including `FRONTEND_URL`.
+4. For auto-deploys, link a branch (e.g. `main`) and enable deploy on push.
+5. The service will expose a public URL such as `https://your-backend.onrender.com`.
 
 ## 🤝 Contributing
 
