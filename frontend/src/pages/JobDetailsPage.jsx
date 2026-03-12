@@ -110,43 +110,57 @@ const JobDetailsPage = () => {
     try {
       /**
        * Resume Handling Strategy:
-       * - If user uploaded a file: use FormData (traditional file upload)
-       * - If user provided a URL: send as JSON with URL string
-       * - If neither: send without resume (optional field)
+       * 1. If user uploaded a FILE:
+       *    - Upload to Cloudinary via /api/upload endpoint
+       *    - Use the returned URL to apply
+       * 2. If user provided a URL string:
+       *    - Use the URL directly to apply (no upload needed)
+       * 3. If neither provided:
+       *    - Apply without resume (optional field)
        * 
-       * This supports:
-       * 1. Direct file uploads (if backend enables)
-       * 2. URL references (e.g., Google Drive, Dropbox, S3)
-       * 3. No resume (optional field)
+       * This approach keeps the file upload and application submission
+       * as separate concerns, which matches the backend API design.
        */
       
-      // When a file is selected we first upload it to Cloudinary
-      // then only send the resulting URL to the applications endpoint.
       let resumeUrlToSend = applicationData.resumeUrl?.trim() || '';
 
+      // Upload file if one was selected
       if (applicationData.resume) {
-        console.log('📎 Uploading resume file:', applicationData.resume.name);
-        const uploadData = new FormData();
-        uploadData.append('file', applicationData.resume);
+        console.log('📎 Starting file upload:', applicationData.resume.name);
+        console.log('   - File type:', applicationData.resume.type);
+        console.log('   - File size:', (applicationData.resume.size / 1024).toFixed(2), 'KB');
+        
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', applicationData.resume);
+        
         try {
-          const uploadResp = await uploadAPI.uploadFile(uploadData);
-          console.log('Upload response:', uploadResp);
-          resumeUrlToSend = uploadResp.data?.url || '';
+          console.log('☁️  Uploading to Cloudinary...');
+          const uploadResponse = await uploadAPI.uploadFile(uploadFormData);
+          
+          console.log('Upload response received:', uploadResponse);
+          resumeUrlToSend = uploadResponse.data?.url || '';
           
           if (!resumeUrlToSend) {
-            throw new Error('No URL returned from upload. Response: ' + JSON.stringify(uploadResp.data));
+            const errorMsg = `Upload returned no URL. Response: ${JSON.stringify(uploadResponse.data)}`;
+            throw new Error(errorMsg);
           }
           
-          console.log('✅ Received resume URL:', resumeUrlToSend);
+          console.log('✅ Upload successful! Cloudinary URL:', resumeUrlToSend.substring(0, 50) + '...');
         } catch (uploadErr) {
-          console.error('❌ Resume upload failed:', uploadErr.message || uploadErr);
-          setSubmitError('Resume upload failed: ' + (uploadErr.response?.data?.message || uploadErr.message));
+          console.error('❌ File upload failed:', {
+            message: uploadErr.message,
+            response: uploadErr.response?.data,
+            status: uploadErr.response?.status,
+          });
+          
+          const errorMsg = uploadErr.response?.data?.message || uploadErr.message || 'Resume upload failed';
+          setSubmitError(`Upload failed: ${errorMsg}`);
           setIsSubmitting(false);
-          return;
+          return; // Stop here, do NOT submit application
         }
       }
 
-      // build simple JSON payload now that we have a URL (or none)
+      // Now submit the application with the resume URL (or without one)
       const payload = {
         jobId: job._id,
         coverLetter: applicationData.coverLetter,
@@ -154,11 +168,12 @@ const JobDetailsPage = () => {
 
       if (resumeUrlToSend) {
         payload.resumeUrl = resumeUrlToSend;
+        console.log('📝 Submitting application WITH resume URL');
       } else {
-        console.log('📝 Submitting application without resume');
+        console.log('📝 Submitting application WITHOUT resume (optional field)');
       }
 
-      console.log('✉️ Submitting application to job:', job._id, 'payload:', payload);
+      console.log('✉️  Submitting to /api/applications:', payload);
       await applicationsAPI.apply(payload);
       
       console.log('✅ Application submitted successfully!');
@@ -166,8 +181,12 @@ const JobDetailsPage = () => {
       setShowApplicationModal(false);
       setApplicationData({ coverLetter: '', resume: null, resumeUrl: '' });
     } catch (error) {
-      console.error('❌ Failed to submit application:', error);
-      setSubmitError(error.response?.data?.message || 'Failed to submit application');
+      console.error('❌ Failed to submit application:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      setSubmitError(error.response?.data?.message || error.message || 'Failed to submit application');
     } finally {
       setIsSubmitting(false);
     }
