@@ -9,6 +9,7 @@ import SavedJobsPage from './pages/SavedJobsPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import EmployerDashboard from './pages/EmployerDashboard';
+import JobseekerDashboard from './pages/JobseekerDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -30,6 +31,14 @@ function App() {
                 element={
                   <ProtectedRoute employerOnly>
                     <EmployerDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/jobseeker"
+                element={
+                  <ProtectedRoute jobseekerOnly>
+                    <JobseekerDashboard />
                   </ProtectedRoute>
                 }
               />

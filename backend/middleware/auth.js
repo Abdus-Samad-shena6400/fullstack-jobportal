@@ -31,4 +31,12 @@ const employerOnly = (req, res, next) => {
   }
 };
 
-module.exports = { protect, employerOnly };
+const jobseekerOnly = (req, res, next) => {
+  if (req.user && req.user.role === 'jobseeker') {
+    next();
+  } else {
+    res.status(403).json({ message: 'Access denied, jobseeker only' });
+  }
+};
+
+module.exports = { protect, employerOnly, jobseekerOnly };

@@ -1,8 +1,8 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const ProtectedRoute = ({ children, employerOnly = false }) => {
-  const { isAuthenticated, isEmployer, loading } = useAuth();
+const ProtectedRoute = ({ children, employerOnly = false, jobseekerOnly = false }) => {
+  const { isAuthenticated, isEmployer, isJobseeker, loading } = useAuth();
 
   if (loading) {
     return (
@@ -17,6 +17,12 @@ const ProtectedRoute = ({ children, employerOnly = false }) => {
   }
 
   if (employerOnly && !isEmployer) {
+    // non-employers redirected to jobs listing
+    return <Navigate to="/jobs" replace />;
+  }
+
+  if (jobseekerOnly && !isJobseeker) {
+    // non-jobseekers redirected to jobs listing
     return <Navigate to="/jobs" replace />;
   }
 

@@ -9,6 +9,11 @@ const cloudinary = require('../config/cloudinary');
 // @route   POST /api/applications
 // @access  Private
 const applyForJob = async (req, res) => {
+  // only jobseekers are allowed to call this endpoint (middleware also protects)
+  if (req.user.role !== 'jobseeker') {
+    return res.status(403).json({ message: 'Only jobseekers can apply to jobs' });
+  }
+
   const { jobId, coverLetter } = req.body;
 
   try {

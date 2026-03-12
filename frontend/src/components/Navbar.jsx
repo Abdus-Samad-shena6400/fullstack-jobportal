@@ -7,7 +7,7 @@ const Navbar = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout, isAuthenticated, isEmployer } = useAuth();
+  const { user, logout, isAuthenticated, isEmployer, isJobseeker } = useAuth();
   const userMenuRef = useRef(null);
 
   useEffect(() => {
@@ -101,6 +101,19 @@ const Navbar = () => {
                     : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
                 }`}
                 aria-current={isActive('/employer') ? 'page' : undefined}
+              >
+                Dashboard
+              </Link>
+            )}
+            {isJobseeker && (
+              <Link
+                to="/jobseeker"
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  isActive('/jobseeker')
+                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+                aria-current={isActive('/jobseeker') ? 'page' : undefined}
               >
                 Dashboard
               </Link>

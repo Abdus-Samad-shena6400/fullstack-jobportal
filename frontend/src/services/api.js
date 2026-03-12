@@ -153,6 +153,8 @@ export const applicationsAPI = {
    */
   apply: (applicationData) => api.post('/applications', applicationData),
   getMyApplications: () => api.get('/applications/my'),
+  // route is available under both /applications/my and /jobseeker/applications
+  getJobseekerApplications: () => api.get('/jobseeker/applications'),
   getEmployerApplications: () => api.get('/applications/employer'),
   updateStatus: (id, status) => api.put(`/applications/${id}`, { status }),
 };

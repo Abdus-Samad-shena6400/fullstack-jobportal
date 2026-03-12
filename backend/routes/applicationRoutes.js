@@ -45,10 +45,12 @@ const upload = multer({
 });
 
 // @route   POST /api/applications
-router.post('/', protect, upload.single('resume'), applyForJob);
+// only jobseekers are allowed to submit applications
+router.post('/', protect, jobseekerOnly, upload.single('resume'), applyForJob);
 
 // @route   GET /api/applications/my
-router.get('/my', protect, getMyApplications);
+// returns current user's applications; jobseekers only
+router.get('/my', protect, jobseekerOnly, getMyApplications);
 
 // @route   GET /api/applications/employer
 router.get('/employer', protect, employerOnly, getEmployerApplications);

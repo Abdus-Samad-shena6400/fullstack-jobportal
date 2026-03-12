@@ -50,6 +50,8 @@ app.use('/uploads', express.static(uploadsDir));
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/jobs', require('./routes/jobRoutes'));
 app.use('/api/applications', require('./routes/applicationRoutes'));
+// jobseeker dashboard route
+app.use('/api/jobseeker', require('./routes/jobseekerRoutes'));
 // file upload endpoint (Cloudinary)
 app.use('/api/upload', require('./routes/uploadRoutes'));
 
