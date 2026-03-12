@@ -9,6 +9,8 @@ const getJobs = async (req, res) => {
     const pageSize = 10;
     const page = Number(req.query.pageNumber) || 1;
 
+    console.log('Get jobs request - Query params:', req.query);
+
     const keyword = req.query.keyword
       ? {
           $or: [
@@ -24,15 +26,21 @@ const getJobs = async (req, res) => {
     if (req.query.category) filters.category = req.query.category;
     if (req.query.location) filters.location = { $regex: req.query.location, $options: 'i' };
 
+    console.log('Filters applied:', filters);
+
     const count = await Job.countDocuments({ ...keyword, ...filters, isActive: true });
+    console.log('Jobs count:', count);
+
     const jobs = await Job.find({ ...keyword, ...filters, isActive: true })
       .populate('employer', 'name company')
       .sort({ postedDate: -1 })
       .limit(pageSize)
       .skip(pageSize * (page - 1));
 
+    console.log(`Returning ${jobs.length} jobs (page ${page})`);
     res.json({ jobs, page, pages: Math.ceil(count / pageSize) });
   } catch (error) {
+    console.error('Error in getJobs:', error);
     res.status(500).json({ message: error.message });
   }
 };

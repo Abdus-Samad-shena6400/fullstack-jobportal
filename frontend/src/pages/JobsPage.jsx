@@ -22,12 +22,23 @@ const JobsPage = () => {
     const fetchJobs = async () => {
       try {
         setIsLoading(true);
+        console.log('Fetching jobs...');
         const response = await jobsAPI.getJobs();
-        setJobs(response.data.jobs);
-        setFilteredJobs(response.data.jobs);
+        console.log('Response structure:', response);
+        console.log('Response data:', response.data);
+        console.log('Jobs array:', response.data.jobs);
+        
+        if (response.data.jobs && Array.isArray(response.data.jobs)) {
+          setJobs(response.data.jobs);
+          setFilteredJobs(response.data.jobs);
+          console.log(`Successfully set ${response.data.jobs.length} jobs`);
+        } else {
+          console.error('Unexpected response structure:', response.data);
+          setError('Invalid response format from server');
+        }
       } catch (err) {
         setError('Failed to load jobs');
-        console.error(err);
+        console.error('Jobs fetch error:', err);
       } finally {
         setIsLoading(false);
       }

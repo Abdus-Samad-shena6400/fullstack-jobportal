@@ -19,6 +19,8 @@ if (frontendUrl !== '*' && !frontendUrl.startsWith('http')) {
   frontendUrl = `https://${frontendUrl}`;
 }
 
+console.log('CORS Origin:', frontendUrl);
+
 const corsOptions = {
   origin: frontendUrl,
   credentials: true,

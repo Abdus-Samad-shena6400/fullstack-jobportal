@@ -7,6 +7,11 @@ import axios from 'axios';
 // `vite.config.js`), so the default remains `/api`.
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
+// Debug log
+console.log('API_BASE_URL:', API_BASE_URL);
+console.log('VITE_API_URL env:', import.meta.env.VITE_API_URL);
+console.log('Environment:', import.meta.env.MODE);
+
 // Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -31,7 +36,17 @@ export const authAPI = {
 
 // Jobs API
 export const jobsAPI = {
-  getJobs: (params) => api.get('/jobs', { params }),
+  getJobs: async (params) => {
+    try {
+      const response = await api.get('/jobs', { params });
+      console.log('Jobs API Response:', response.data);
+      console.log('Jobs fetched:', response.data?.jobs?.length || 0);
+      return response;
+    } catch (error) {
+      console.error('Jobs API Error:', error.response?.data || error.message);
+      throw error;
+    }
+  },
   getJob: (id) => api.get(`/jobs/${id}`),
   createJob: (jobData) => api.post('/jobs', jobData),
   updateJob: (id, jobData) => api.put(`/jobs/${id}`, jobData),
