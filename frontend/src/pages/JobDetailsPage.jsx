@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { jobsAPI, applicationsAPI } from '../services/api';
+import { jobsAPI, applicationsAPI, uploadAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 /**
@@ -120,25 +120,33 @@ const JobDetailsPage = () => {
        * 3. No resume (optional field)
        */
       
-      const formData = new FormData();
-      formData.append('jobId', job._id);
-      formData.append('coverLetter', applicationData.coverLetter);
-      
-      // Handle resume - either file or URL
+      // When a file is selected we first upload it to Cloudinary
+      // then only send the resulting URL to the applications endpoint.
+      let resumeUrlToSend = applicationData.resumeUrl?.trim() || '';
+
       if (applicationData.resume) {
-        // File upload case
-        formData.append('resume', applicationData.resume);
-        console.log('📎 Submitting application with file upload');
-      } else if (applicationData.resumeUrl?.trim()) {
-        // URL case - add to FormData as string
-        formData.append('resumeUrl', applicationData.resumeUrl.trim());
-        console.log('🔗 Submitting application with resume URL:', applicationData.resumeUrl);
+        console.log('📎 Uploading resume file to Cloudinary');
+        const uploadData = new FormData();
+        uploadData.append('file', applicationData.resume);
+        const uploadResp = await uploadAPI.uploadFile(uploadData);
+        resumeUrlToSend = uploadResp.data?.url || uploadResp.data?.secure_url || '';
+        console.log('✅ Received resume URL:', resumeUrlToSend);
+      }
+
+      // build simple JSON payload now that we have a URL (or none)
+      const payload = {
+        jobId: job._id,
+        coverLetter: applicationData.coverLetter,
+      };
+
+      if (resumeUrlToSend) {
+        payload.resumeUrl = resumeUrlToSend;
       } else {
         console.log('📝 Submitting application without resume');
       }
 
-      console.log('✉️ Submitting application to job:', job._id);
-      await applicationsAPI.apply(formData);
+      console.log('✉️ Submitting application to job:', job._id, 'payload:', payload);
+      await applicationsAPI.apply(payload);
       
       console.log('✅ Application submitted successfully!');
       alert('Application submitted successfully!');

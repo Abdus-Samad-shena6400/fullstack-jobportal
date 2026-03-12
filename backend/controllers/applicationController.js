@@ -1,3 +1,4 @@
+const fs = require('fs');
 const Application = require('../models/Application');
 const Job = require('../models/Job');
 const User = require('../models/User');
@@ -27,6 +28,7 @@ const applyForJob = async (req, res) => {
     }
 
     let resumeUrl = null;
+
     if (req.file) {
       try {
         const result = await cloudinary.uploader.upload(req.file.path, {
@@ -37,7 +39,17 @@ const applyForJob = async (req, res) => {
       } catch (uploadError) {
         console.error('Cloudinary upload error:', uploadError.message);
         // continue without resume
+      } finally {
+        // remove temp file from disk
+        fs.unlink(req.file.path, err => {
+          if (err) console.error('Failed to delete temp resume file:', err);
+        });
       }
+    }
+
+    // If no file was uploaded but frontend provided a direct URL, use it
+    if (!resumeUrl && req.body.resumeUrl) {
+      resumeUrl = req.body.resumeUrl;
     }
 
     const application = new Application({

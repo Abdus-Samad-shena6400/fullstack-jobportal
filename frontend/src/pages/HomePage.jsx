@@ -1,15 +1,36 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { jobsData } from '../data/jobsData';
 import JobCard from '../components/JobCard';
+import { jobsAPI } from '../services/api';  // fetch from backend
 
 const HomePage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [savedJobs, setSavedJobs] = useState(JSON.parse(localStorage.getItem('savedJobs') || '[]'));
   const [isVisible, setIsVisible] = useState(false);
 
+  // jobs loaded from backend
+  const [jobs, setJobs] = useState([]);
+  const [loadingJobs, setLoadingJobs] = useState(true);
+  const [jobsError, setJobsError] = useState(null);
+
   useEffect(() => {
     setIsVisible(true);
+
+    // fetch jobs from API when page loads
+    const fetchJobs = async () => {
+      try {
+        setLoadingJobs(true);
+        const res = await jobsAPI.getJobs();
+        setJobs(res.data.jobs || []);
+      } catch (err) {
+        console.error('Failed to load jobs on home page:', err);
+        setJobsError('Could not load jobs');
+      } finally {
+        setLoadingJobs(false);
+      }
+    };
+
+    fetchJobs();
   }, []);
 
   const handleSaveToggle = (jobId) => {
@@ -20,9 +41,10 @@ const HomePage = () => {
     localStorage.setItem('savedJobs', JSON.stringify(updatedSavedJobs));
   };
 
-  const featuredJobs = jobsData.slice(0, 3);
+  // derive lists from API-loaded jobs
+  const featuredJobs = jobs.slice(0, 3);
 
-  const filteredJobs = jobsData.filter(job =>
+  const filteredJobs = jobs.filter(job =>
     job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     job.company.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -108,16 +130,21 @@ const HomePage = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {displayJobs.length > 0 ? (
+            {loadingJobs ? (
+            <div className="col-span-full text-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-500">Loading jobs...</p>
+            </div>
+          ) : displayJobs.length > 0 ? (
               displayJobs.map((job, index) => (
                 <div
-                  key={job.id}
+                  key={job._id || job.id}
                   className={`transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
                   style={{ transitionDelay: `${600 + index * 200}ms` }}
                 >
                   <JobCard
                     job={job}
-                    isSaved={savedJobs.includes(job.id)}
+                    isSaved={savedJobs.includes(job._id || job.id)}
                     onSaveToggle={handleSaveToggle}
                   />
                 </div>

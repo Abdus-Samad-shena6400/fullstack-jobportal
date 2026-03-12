@@ -106,7 +106,7 @@ const SavedJobsPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {savedJobsData.map((job, index) => (
                 <div
-                  key={job.id}
+                  key={job._id || job.id}
                   className="slide-up"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >

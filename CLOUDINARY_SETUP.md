@@ -17,8 +17,11 @@ CLOUDINARY_API_SECRET=your_api_secret_here
 
 ## ✅ What’s Already Done
 - The `.env` file in the `backend` folder has placeholders for Cloudinary credentials.
-- The `applicationController.js` includes error handling to gracefully skip uploads if credentials are invalid.
-- File uploads are optional; if credentials fail, applications still submit successfully.
+- A new `/api/upload` endpoint allows the front‑end to send a file and receive a Cloudinary URL.
+- The `applicationController.js` has been updated:
+  - it will upload a `resume` file (via multer) to Cloudinary and save the URL, **then delete the temp file**.
+  - it also accepts a `resumeUrl` string in the request body, so the front-end can simply send a link instead of a file.
+- File uploads are still optional; if credentials fail, applications still submit successfully.
 
 ## 📝 How to Verify
 1. Restart the backend server:

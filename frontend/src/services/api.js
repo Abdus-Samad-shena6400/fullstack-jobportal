@@ -148,12 +148,24 @@ export const jobsAPI = {
 export const applicationsAPI = {
   /**
    * Submit job application
-   * resume is optional - can be a file upload or URL string
+   * - front-end should upload any resume file separately and send **only a URL** here
+   * - backend now supports receiving a `resumeUrl` string in the JSON body
    */
   apply: (applicationData) => api.post('/applications', applicationData),
   getMyApplications: () => api.get('/applications/my'),
   getEmployerApplications: () => api.get('/applications/employer'),
   updateStatus: (id, status) => api.put(`/applications/${id}`, { status }),
+};
+
+// ============================================
+// UPLOAD API (Cloudinary)
+// ============================================
+export const uploadAPI = {
+  /**
+   * Upload a single file, returns { url }
+   * Accepts FormData with `file` field.
+   */
+  uploadFile: (formData) => api.post('/upload', formData),
 };
 
 export default api;

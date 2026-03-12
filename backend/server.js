@@ -38,6 +38,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/jobs', require('./routes/jobRoutes'));
 app.use('/api/applications', require('./routes/applicationRoutes'));
+// file upload endpoint (Cloudinary)
+app.use('/api/upload', require('./routes/uploadRoutes'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

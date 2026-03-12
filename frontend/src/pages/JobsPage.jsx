@@ -166,13 +166,13 @@ const JobsPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredJobs.map((job, index) => (
                   <div
-                    key={job.id}
+                    key={job._id || job.id}
                     className="slide-up"
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
                     <JobCard
                       job={job}
-                      isSaved={savedJobs.includes(job.id)}
+                      isSaved={savedJobs.includes(job._id || job.id)}
                       onSaveToggle={handleSaveToggle}
                     />
                   </div>
