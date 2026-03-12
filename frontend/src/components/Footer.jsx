@@ -1,3 +1,5 @@
+import profileImg from '../assets/profile.jpeg';
+
 const Footer = () => {
   return (
     <footer className="bg-gray-900 dark:bg-black text-white py-12 mt-16" role="contentinfo">
@@ -99,7 +101,7 @@ const Footer = () => {
                 Connecting talented professionals with amazing career opportunities worldwide.
               </p>
               <div className="flex items-center gap-4">
-                <img src="/profile.jpeg" alt="Abdus Samad" className="w-16 h-16 rounded-full border-2 border-blue-400" />
+                <img src={profileImg} alt="Abdus Samad" className="w-16 h-16 rounded-full border-2 border-blue-400" />
                 <div>
                   <p className="text-white font-semibold">Created by Abdus Samad</p>
                   <p className="text-gray-400 text-sm">abdussamad124556@gmail.com</p>

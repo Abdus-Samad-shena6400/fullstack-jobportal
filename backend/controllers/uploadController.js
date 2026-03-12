@@ -1,3 +1,4 @@
+const path = require('path');
 const cloudinary = require('../config/cloudinary');
 const fs = require('fs');
 
@@ -10,7 +11,9 @@ const uploadFile = async (req, res) => {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    const result = await cloudinary.uploader.upload(req.file.path, {
+    const localPath = path.resolve(req.file.path);
+    console.log('Uploading file from local path:', localPath);
+    const result = await cloudinary.uploader.upload(localPath, {
       folder: 'resumes',
       resource_type: 'auto',
     });

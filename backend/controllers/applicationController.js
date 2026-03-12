@@ -31,7 +31,9 @@ const applyForJob = async (req, res) => {
 
     if (req.file) {
       try {
-        const result = await cloudinary.uploader.upload(req.file.path, {
+        const localPath = path.resolve(req.file.path);
+        console.log('Applying for job - uploading resume from', localPath);
+        const result = await cloudinary.uploader.upload(localPath, {
           folder: 'resumes',
           resource_type: 'auto',
         });
