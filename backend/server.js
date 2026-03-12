@@ -13,8 +13,17 @@ connectDB();
 const app = express();
 
 // Middleware
+// Handle CORS - normalize frontend URL to include protocol
+let frontendUrl = process.env.FRONTEND_URL || '*';
+if (frontendUrl !== '*' && !frontendUrl.startsWith('http')) {
+  frontendUrl = `https://${frontendUrl}`;
+}
+
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || '*',
+  origin: frontendUrl,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 };
 app.use(cors(corsOptions));
 app.use(express.json());
