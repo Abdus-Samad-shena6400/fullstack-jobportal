@@ -15,7 +15,8 @@ const router = express.Router();
 // we can reuse same disk storage as applicationRoutes or simplify
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    // use the absolute uploadDir we already verified exists
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
     cb(null, `${Date.now()}-${file.originalname}`);

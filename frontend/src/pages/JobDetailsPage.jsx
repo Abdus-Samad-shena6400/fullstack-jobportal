@@ -125,12 +125,25 @@ const JobDetailsPage = () => {
       let resumeUrlToSend = applicationData.resumeUrl?.trim() || '';
 
       if (applicationData.resume) {
-        console.log('📎 Uploading resume file to Cloudinary');
+        console.log('📎 Uploading resume file:', applicationData.resume.name);
         const uploadData = new FormData();
         uploadData.append('file', applicationData.resume);
-        const uploadResp = await uploadAPI.uploadFile(uploadData);
-        resumeUrlToSend = uploadResp.data?.url || uploadResp.data?.secure_url || '';
-        console.log('✅ Received resume URL:', resumeUrlToSend);
+        try {
+          const uploadResp = await uploadAPI.uploadFile(uploadData);
+          console.log('Upload response:', uploadResp);
+          resumeUrlToSend = uploadResp.data?.url || '';
+          
+          if (!resumeUrlToSend) {
+            throw new Error('No URL returned from upload. Response: ' + JSON.stringify(uploadResp.data));
+          }
+          
+          console.log('✅ Received resume URL:', resumeUrlToSend);
+        } catch (uploadErr) {
+          console.error('❌ Resume upload failed:', uploadErr.message || uploadErr);
+          setSubmitError('Resume upload failed: ' + (uploadErr.response?.data?.message || uploadErr.message));
+          setIsSubmitting(false);
+          return;
+        }
       }
 
       // build simple JSON payload now that we have a URL (or none)
