@@ -8,7 +8,7 @@ const {
   getEmployerApplications,
   updateApplicationStatus,
 } = require('../controllers/applicationController');
-const { protect, employerOnly } = require('../middleware/auth');
+const { protect, employerOnly, jobseekerOnly } = require('../middleware/auth');
 
 const router = express.Router();
 
