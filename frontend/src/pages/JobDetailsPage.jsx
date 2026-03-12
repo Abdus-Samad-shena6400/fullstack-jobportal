@@ -3,6 +3,16 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { jobsAPI, applicationsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
+/**
+ * JobDetailsPage Component
+ * 
+ * REFRESH HANDLING: When user refreshes the page:
+ * 1. Vercel routing (vercel.json) redirects to /index.html
+ * 2. React Router extracts job ID from URL (/job/:id)
+ * 3. useParams() retrieves the ID
+ * 4. useEffect fetches fresh data from API
+ * 5. No more 404 errors on refresh!
+ */
 const JobDetailsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -16,27 +26,52 @@ const JobDetailsPage = () => {
   const [applicationData, setApplicationData] = useState({
     coverLetter: '',
     resume: null,
+    resumeUrl: '', // For URL-based resumes instead of file uploads
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
 
+  /**
+   * Fetch job details when component mounts or ID changes
+   * Handles 404 gracefully when job is not found or deleted
+   */
   useEffect(() => {
     const fetchJob = async () => {
       try {
+        if (!id) {
+          setError('No job ID provided');
+          setIsLoading(false);
+          return;
+        }
+
         setIsLoading(true);
+        console.log('🔍 Loading job details for ID:', id);
+        
         const response = await jobsAPI.getJob(id);
+        console.log('✅ Job loaded successfully:', response.data?.title);
+        
         setJob(response.data);
         setIsSaved(savedJobs.includes(response.data._id));
+        setError(null);
       } catch (err) {
-        setError('Failed to load job details');
-        console.error(err);
+        console.error('❌ Failed to load job:', err);
+        
+        if (err.response?.status === 404) {
+          setError('This job no longer exists or has been removed.');
+        } else if (err.response?.status === 500) {
+          setError('Server error. Please try again later.');
+        } else if (err.message === 'Job ID is required') {
+          setError('Invalid job ID');
+        } else {
+          setError(err.response?.data?.message || 'Failed to load job details');
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchJob();
-  }, [id]);
+  }, [id, savedJobs]);
 
   const handleSaveToggle = () => {
     const jobId = job._id;
@@ -62,6 +97,8 @@ const JobDetailsPage = () => {
 
   const handleApplicationSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate required field
     if (!applicationData.coverLetter.trim()) {
       setSubmitError('Cover letter is required');
       return;
@@ -69,21 +106,47 @@ const JobDetailsPage = () => {
 
     setIsSubmitting(true);
     setSubmitError(null);
+    
     try {
+      /**
+       * Resume Handling Strategy:
+       * - If user uploaded a file: use FormData (traditional file upload)
+       * - If user provided a URL: send as JSON with URL string
+       * - If neither: send without resume (optional field)
+       * 
+       * This supports:
+       * 1. Direct file uploads (if backend enables)
+       * 2. URL references (e.g., Google Drive, Dropbox, S3)
+       * 3. No resume (optional field)
+       */
+      
       const formData = new FormData();
       formData.append('jobId', job._id);
       formData.append('coverLetter', applicationData.coverLetter);
+      
+      // Handle resume - either file or URL
       if (applicationData.resume) {
+        // File upload case
         formData.append('resume', applicationData.resume);
+        console.log('📎 Submitting application with file upload');
+      } else if (applicationData.resumeUrl?.trim()) {
+        // URL case - add to FormData as string
+        formData.append('resumeUrl', applicationData.resumeUrl.trim());
+        console.log('🔗 Submitting application with resume URL:', applicationData.resumeUrl);
+      } else {
+        console.log('📝 Submitting application without resume');
       }
 
+      console.log('✉️ Submitting application to job:', job._id);
       await applicationsAPI.apply(formData);
+      
+      console.log('✅ Application submitted successfully!');
       alert('Application submitted successfully!');
       setShowApplicationModal(false);
-      setApplicationData({ coverLetter: '', resume: null });
+      setApplicationData({ coverLetter: '', resume: null, resumeUrl: '' });
     } catch (error) {
+      console.error('❌ Failed to submit application:', error);
       setSubmitError(error.response?.data?.message || 'Failed to submit application');
-      console.error('Failed to submit application:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -364,15 +427,51 @@ const JobDetailsPage = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Resume/CV (Optional)
                   </label>
-                  <input
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    onChange={(e) => setApplicationData({ ...applicationData, resume: e.target.files[0] })}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                  />
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Supported formats: PDF, DOC, DOCX
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                    Choose one option below:
                   </p>
+                  
+                  {/* File Upload Option */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                      Upload File (PDF, DOC, DOCX)
+                    </label>
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={(e) => {
+                        setApplicationData({ 
+                          ...applicationData, 
+                          resume: e.target.files[0],
+                          resumeUrl: '' // Clear URL if file is selected
+                        });
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+
+                  {/* Resume URL Option */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                      Or paste Resume URL
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://example.com/my-resume.pdf"
+                      value={applicationData.resumeUrl}
+                      onChange={(e) => {
+                        setApplicationData({ 
+                          ...applicationData, 
+                          resumeUrl: e.target.value,
+                          resume: null // Clear file if URL is entered
+                        });
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                    />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      Use URLs from Google Drive, Dropbox, GitHub, or any public hosting
+                    </p>
+                  </div>
                 </div>
 
                 {/* Selected File Info */}
@@ -380,6 +479,15 @@ const JobDetailsPage = () => {
                   <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 px-4 py-3 rounded-lg">
                     <p className="text-sm text-green-700 dark:text-green-400">
                       ✓ File selected: {applicationData.resume.name}
+                    </p>
+                  </div>
+                )}
+
+                {/* Selected URL Info */}
+                {applicationData.resumeUrl && !applicationData.resume && (
+                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 px-4 py-3 rounded-lg">
+                    <p className="text-sm text-green-700 dark:text-green-400">
+                      ✓ Resume URL set: {applicationData.resumeUrl}
                     </p>
                   </div>
                 )}
